@@ -1,0 +1,13 @@
+[package]
+name = "dayzero_bot"
+version = "0.1.0"
+authors = ["Todd <tgs1621@jagmail.southalabama.edu>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serenity = "0.10"
+rand = "0.7.2"
+tokio = { version = "1.11.0", features = ["full"] }
+
