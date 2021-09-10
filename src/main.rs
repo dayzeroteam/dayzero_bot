@@ -1,11 +1,7 @@
 use serenity::async_trait;
-use serenity::http::Http;
-use serenity::model::id::RoleId;
 use serenity::client::{Client, Context, EventHandler};
 use serenity::model::{
-    channel::Message,
-    guild::Member,
-    gateway::Ready
+    channel::Message
 };
 use serenity::framework::standard::{
     Args,
@@ -82,53 +78,49 @@ pub async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
-pub async fn join_team(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+pub async fn join_team(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     // This function needs to enable people to join competition teams. 
     // Usage: !join_team <ccdc, cptc, cyberforce, hivestorm, mdc3, cyber-range>
     //
     // Will need to take in message after command and iterate through it, breaking at whitespace
     // and adding people to roles for each team they want to join.
     //
-    //msg.reply(ctx, args.single::<String>().unwrap()).await?;
-    //msg.reply(ctx, msg.author.id).await?;
 
     let possible_role = args.rest();
-    //let server_id = 758456684036751420;
-    //let member_id = msg.author.id.0;
-    //let http_id = ctx.http;
     
-    //let member1 = ctx.http.get_member(server_id, member_id).await?;
-    //let role = 858559192481398865;
-
-    //let roles = http_id.get_guild_roles(server_id);
-    //msg.reply(http_id, &format("{:#?}", roles));
-    //member1.add_roles(http_id, &role);
-    
+    // We have to get the "guild" or server, we can get this information from the message object.
     if let Some(guild) = msg.guild(&ctx.cache).await {
+        // We have to check and see if the guild has the role available. So we call the function
+        // `role_by_name()` function on the guild object. 
+        // `role_by_name()` returns a role ID which we can use to add the role to the user.  
         if let Some(role) = guild.role_by_name(possible_role) {
-            if let Err(why) = msg.channel_id.say(&ctx.http, &format!("Role: {}", role.id)).await
+            // If there ISN'T a role we need to expect an error to be returned, if not we say
+            // something in the channel!
+            if let Err(why) = msg.channel_id.say(&ctx.http, &format!("Assigning role: {}", possible_role)).await
             {
+                // If we run into an error sending the message we print the error message. 
+                // (This will NOT print to the Discord Server, but to the server where the bot is)
                 println!{"AH CRAP ERROR: {:?}", why};
             }
+            // Next we get the member information which we can also get from the message object.
+            // We make it mutable to ensure we can change the variable (since we're assigning roles!) 
             let mut mem = msg.member(ctx).await.unwrap();
-            if let _update = mem.add_role(ctx, role) {
-                msg.channel_id.say(&ctx.http, &format!("Role changed!")).await?; 
+            // Again we're doing something that might return an error, so we expect it.
+            // We're attempting to add the role to our mutable member object. 
+            if let Err(why) = mem.add_role(ctx, role).await {
+                //Print an error message if the role change fails. 
+                println!{"AH CRAP ROLE NOT CHANGED: {:?}", why};
             }
+        // If we're succesful get here and exit.            
         return Ok(())
         }
 
     }    
 
+    // If there is no role we send a message letting them know!
     msg.channel_id
         .say(&ctx.http, format!("Could not find role named: {:?}", possible_role))
         .await?;
-    //msg.author.dm(&ctx, |m| {
-    //    m.content("Adding your roles");
-    
-    //    m
-    //}).await?;
-
-    //msg.author.add_roles(858559192481398865);
 
     Ok(())
 }
