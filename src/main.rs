@@ -16,6 +16,8 @@ use rand::seq::SliceRandom;
 use std::env;
 use std::collections::HashMap;
 
+extern crate dotenv;
+
 #[group]
 #[commands(ping, quote, join_team)]
 struct General;
@@ -30,8 +32,12 @@ async fn main() {
     let framework = StandardFramework::new()
         .configure(|c| c.prefix("!")) // set the bot's prefix to "!"
         .group(&GENERAL_GROUP);
+    // Use dotenv crate to get environment variables from .env file. 
+    dotenv::dotenv().expect("Error reading .env file. Is the file present?");
+    let token = env::var("DISCORD_TOKEN")
+        .expect("Error reading 'DISCORD_TOKEN', is variable present in .env file?");
+    
     // Login with a bot token from the environment
-    let token = env::var("DISCORD_TOKEN").expect("token");
     let mut client = Client::builder(token)
         .event_handler(Handler)
         .framework(framework)
@@ -99,7 +105,8 @@ pub async fn join_team(ctx: &Context, msg: &Message, args: Args) -> CommandResul
         ("cyberforce", "Cyberforce Team Member"),
         ("mdc3", "MDC3 Team Member"),
         ("hivestorm", "Hivestorm Team Member"),
-        ("cyberrange", "Cyber-range Member")]
+        ("cyberrange", "Cyber-range Member"),
+        ("bot-dev", "Bot Developer")]
         .iter().cloned().collect();
     // FIXME loop through the words and check and see if it contains the keys from the hashmap,
     // if it does add the value of the hashmap to a queue. Then pop items off the queue to add those roles. 
